@@ -1,0 +1,25 @@
+{
+  "name": "blog-goapp",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/blog-goapp",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      },
+      "extensions": [
+        "EditorConfig.EditorConfig",
+        "GitHub.copilot",
+        "golang.go"
+      ]
+    }
+  },
+  "postCreateCommand": {
+    "go-mod": "go mod tidy"
+  },
+  "postAttachCommand": "cat ./.devcontainer/README.txt",
+  "forwardPorts": [
+    4000
+  ]
+}

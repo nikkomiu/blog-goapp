@@ -1,0 +1,36 @@
+FROM "golang:1.22-alpine"
+
+# Install dev dependencies
+RUN apk add --update \
+    bash zsh zsh-vcs git sudo \
+    age htop inotify-tools \
+    nodejs npm \
+    docker-cli postgresql-client curl
+
+# Install sops
+RUN wget https://github.com/mozilla/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64 -O /usr/local/bin/sops && \
+    chmod +x /usr/local/bin/sops
+
+# Install Trivy Scanner
+ARG TRIVY_VERSION="0.49.1"
+RUN wget https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz && \
+    tar zxvf trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz && \
+    mv trivy /usr/local/bin/trivy && \
+    rm trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz
+
+# Create and switch to a jailed admin user
+RUN echo "%sudo ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/sudo && \
+    addgroup sudo && addgroup docker && \
+    adduser -D -s /bin/zsh coder && \
+    addgroup coder sudo && \
+    addgroup coder docker
+USER coder
+
+ENV EDITOR="code --wait"
+
+RUN git config --global core.editor "$EDITOR" && git config --global init.defaultBranch main
+
+# Install oh my zsh
+ARG ZSH_THEME_NAME="agnoster"
+RUN sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" && \
+    sed -i -e "s/ZSH_THEME=.*/ZSH_THEME=\"$ZSH_THEME_NAME\"/" ~/.zshrc
